@@ -1,26 +1,34 @@
 import requests
-from config import HF_TOKEN
+import os
+
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
 
-headers = {}
-if HF_TOKEN:
-    headers["Authorization"] = f"Bearer {HF_TOKEN}"
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
 
 def summarize(text):
 
+    prompt = f"""
+Resume la siguiente noticia en español.
+
+Requisitos:
+- Máximo 1500 caracteres
+- Explica claramente el contexto global
+- Explica el posible impacto económico o político en Chile
+- Usa lenguaje claro en español
+
+Noticia:
+{text}
+"""
+
     payload = {
-        "inputs": text[:2000],
-        "parameters": {"max_length": 200, "min_length": 80}
+        "inputs": prompt
     }
 
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
-        data = response.json()
+    response = requests.post(API_URL, headers=headers, json=payload)
+    result = response.json()
 
-        if isinstance(data, list) and "summary_text" in data[0]:
-            return data[0]["summary_text"]
-    except:
-        pass
-
-    return text[:500]
+    return result[0]["summary_text"]
