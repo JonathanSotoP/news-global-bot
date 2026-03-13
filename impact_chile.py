@@ -1,20 +1,12 @@
-def analyze_impact(text):
-    text = text.lower()
-    impacts = []
+def impact_on_chile(text):
 
-    if "oil" in text or "energy" in text:
-        impacts.append("posible alza de combustibles en Chile")
+    impact = """
+Posibles impactos para Chile:
 
-    if "china" in text or "commodities" in text:
-        impacts.append("impacto potencial en el precio del cobre")
+- Chile depende fuertemente del comercio internacional, por lo que eventos globales pueden afectar exportaciones como cobre, litio y alimentos.
+- Conflictos o tensiones geopolíticas pueden generar volatilidad en el dólar, lo que impacta precios internos.
+- Cambios económicos globales pueden afectar inversión extranjera en Chile.
+- También pueden impactar mercados energéticos y costos de importación.
+"""
 
-    if "interest rate" in text or "inflation" in text:
-        impacts.append("posible presión en el dólar y tasas en Chile")
-
-    if "war" in text or "conflict" in text:
-        impacts.append("volatilidad en mercados globales que puede afectar la economía chilena")
-
-    if len(impacts) == 0:
-        impacts.append("posible impacto indirecto en comercio internacional")
-
-    return impacts[:3]
+    return impact
