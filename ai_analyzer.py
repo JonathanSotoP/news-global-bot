@@ -4,7 +4,8 @@ from config import HF_TOKEN
 API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
 
 headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
+    "Authorization": f"Bearer {HF_TOKEN}",
+    "Content-Type": "application/json"
 }
 
 
@@ -46,14 +47,20 @@ Contenido:
 
     try:
 
-        r = requests.post(
+        response = requests.post(
             API_URL,
             headers=headers,
             json=payload,
             timeout=60
         )
 
-        data = r.json()
+        print("Status code:", response.status_code)
+
+        if response.status_code != 200:
+            print("Respuesta API:", response.text)
+            return None
+
+        data = response.json()
 
         print("Respuesta IA:", data)
 
@@ -63,7 +70,5 @@ Contenido:
         return None
 
     except Exception as e:
-
         print("Error IA:", e)
-
         return None
