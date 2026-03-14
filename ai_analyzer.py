@@ -1,34 +1,18 @@
-from transformers import pipeline
+import requests
 from bs4 import BeautifulSoup
-import re
+import os
 
-print("Cargando modelo IA...")
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
 
-generator = pipeline(
-    "text-generation",
-    model="gpt2"
-)
-
-print("Modelo cargado")
+headers = {
+    "Authorization": f"Bearer {os.environ['HF_TOKEN']}"
+}
 
 
 def clean_html(text):
+
     soup = BeautifulSoup(text, "html.parser")
     return soup.get_text()
-
-
-def clean_ai_output(text):
-
-    # eliminar el prompt si aparece
-    text = text.replace("Traduce al español y resume la siguiente noticia.", "")
-    text = text.replace("Titulo:", "TITULO:")
-    text = text.replace("Contenido:", "")
-    text = text.replace("Responde EXACTAMENTE en este formato:", "")
-
-    # eliminar espacios repetidos
-    text = re.sub(r"\n\s*\n", "\n\n", text)
-
-    return text.strip()
 
 
 def analyze_news(title, content):
@@ -36,31 +20,38 @@ def analyze_news(title, content):
     try:
 
         content = clean_html(content)
-        content = content[:800]
+        content = content[:1200]
 
         prompt = f"""
-Traduce al español y resume esta noticia.
+Traduce al español y resume la siguiente noticia.
 
-Titulo: {title}
+Titulo:
+{title}
 
-Contenido: {content}
+Contenido:
+{content}
 
-Formato de respuesta:
+Responde SOLO así:
 
 TITULO:
+(titulo en español)
+
 RESUMEN:
+(resumen claro en español en 3 lineas)
 """
 
-        result = generator(
-            prompt,
-            max_length=220,
-            do_sample=True,
-            temperature=0.3
-        )
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 180
+            }
+        }
+
+        response = requests.post(API_URL, headers=headers, json=payload)
+
+        result = response.json()
 
         text = result[0]["generated_text"]
-
-        text = clean_ai_output(text)
 
         return f"🌍 NOTICIA GLOBAL IMPORTANTE\n\n{text}"
 
