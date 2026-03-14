@@ -1,7 +1,7 @@
 import requests
 from config import HF_TOKEN
 
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
@@ -11,49 +11,55 @@ headers = {
 def analyze_news(title, article):
 
     prompt = f"""
-Analiza la siguiente noticia internacional.
+Traduce el titulo al español y analiza la noticia.
 
-1 Traduce el título al español
-2 Resume la noticia en español (1000 caracteres)
-3 Explica por qué es importante globalmente
-4 Explica cómo podría impactar en Chile
-
-Formato:
+Entrega la respuesta en español con este formato:
 
 TITULO:
-...
+(titulo en español)
 
 RESUMEN:
-...
+(resumen claro de la noticia)
 
 IMPACTO EN CHILE:
-- ...
-- ...
+- impacto economico o politico
+- impacto en cobre, comercio o dolar si aplica
 
 NOTICIA:
-{title}
+Titulo: {title}
 
-{article}
+Contenido:
+{article[:2000]}
 """
 
     payload = {
         "inputs": prompt,
         "parameters": {
-            "max_new_tokens": 400
+            "max_new_tokens": 300
         }
     }
 
     try:
 
-        r = requests.post(API_URL, headers=headers, json=payload, timeout=60)
+        r = requests.post(
+            API_URL,
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
 
         data = r.json()
 
-        if isinstance(data, list):
+        print("Respuesta IA:", data)
+
+        if isinstance(data, list) and "generated_text" in data[0]:
+
             return data[0]["generated_text"]
 
         return None
 
-    except:
+    except Exception as e:
+
+        print("Error IA:", e)
 
         return None
