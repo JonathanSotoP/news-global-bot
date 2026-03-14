@@ -2,11 +2,11 @@ from transformers import pipeline
 from bs4 import BeautifulSoup
 import re
 
-print("Cargando modelo de traducción...")
+print("Cargando modelo IA...")
 
-translator = pipeline(
-    "translation",
-    model="Helsinki-NLP/opus-mt-en-es"
+generator = pipeline(
+    "text-generation",
+    model="google/flan-t5-base"
 )
 
 print("Modelo cargado")
@@ -22,52 +22,41 @@ def clean_text(text):
     return text.strip()
 
 
-def summarize(text):
-
-    sentences = re.split(r'[.!?]', text)
-
-    clean = []
-
-    for s in sentences:
-        s = s.strip()
-
-        if len(s) > 40:
-            clean.append(s)
-
-    return ". ".join(clean[:2])
-
-
-def translate(text):
-
-    result = translator(text, max_length=200)
-
-    return result[0]["translation_text"]
-
-
 def analyze_news(title, text):
 
     try:
 
         text = clean_text(text)
 
-        text = text[:1000]
+        text = text[:1200]
 
-        summary = summarize(text)
+        prompt = f"""
+Traduce al español y resume la siguiente noticia.
 
-        title_es = translate(title)
+Titulo:
+{title}
 
-        summary_es = translate(summary)
+Contenido:
+{text}
 
-        message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
+Responde EXACTAMENTE en este formato:
 
-📰 TITULO:
-{title_es}
+TITULO:
+(titulo traducido al español)
 
-📄 RESUMEN:
-{summary_es}
+RESUMEN:
+(resumen claro en español en 3-4 lineas)
 """
 
-        return message
+        result = generator(
+            prompt,
+            max_length=250,
+            do_sample=False
+        )
+
+        response = result[0]["generated_text"]
+
+        return f"🌍 NOTICIA GLOBAL IMPORTANTE\n\n{response}"
 
     except Exception as e:
 
