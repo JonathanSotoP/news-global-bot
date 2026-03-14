@@ -1,7 +1,6 @@
-feedparser
-requests
-beautifulsoup4
-python-telegram-bot
 transformers
 torch
 sentencepiece
+beautifulsoup4
+feedparser
+requests
