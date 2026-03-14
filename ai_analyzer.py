@@ -1,68 +1,56 @@
-import requests
 from bs4 import BeautifulSoup
-import os
+import re
+from heapq import nlargest
 
-API_URL = "https://router.huggingface.co/v1/chat/completions"
-
-headers = {
-    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
-    "Content-Type": "application/json"
-}
 
 def clean_html(text):
     soup = BeautifulSoup(text, "html.parser")
     return soup.get_text()
 
+
+def summarize(text, n=3):
+
+    sentences = re.split(r'(?<=[.!?]) +', text)
+
+    if len(sentences) <= n:
+        return " ".join(sentences)
+
+    word_frequencies = {}
+
+    for word in re.findall(r'\w+', text.lower()):
+        word_frequencies[word] = word_frequencies.get(word, 0) + 1
+
+    maximum = max(word_frequencies.values())
+
+    for word in word_frequencies:
+        word_frequencies[word] /= maximum
+
+    sentence_scores = {}
+
+    for sent in sentences:
+        for word in re.findall(r'\w+', sent.lower()):
+            if word in word_frequencies:
+                sentence_scores[sent] = sentence_scores.get(sent, 0) + word_frequencies[word]
+
+    summary_sentences = nlargest(n, sentence_scores, key=sentence_scores.get)
+
+    return " ".join(summary_sentences)
+
+
 def analyze_news(title, content):
 
-    try:
+    content = clean_html(content)
+    content = content[:2000]
 
-        content = clean_html(content)
-        content = content[:1000]
+    summary = summarize(content, 3)
 
-        prompt = f"""
-Traduce al español y resume esta noticia.
-
-Titulo:
-{title}
-
-Contenido:
-{content}
-
-Responde EXACTAMENTE así:
+    message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
 
 TITULO:
-(titulo en español)
+{title}
 
 RESUMEN:
-(resumen en 3 lineas)
+{summary}
 """
 
-        payload = {
-            "model": "mistralai/Mistral-7B-Instruct-v0.2",
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 200
-        }
-
-        response = requests.post(API_URL, headers=headers, json=payload)
-
-        if response.status_code != 200:
-            print("Error IA:", response.text)
-            return None
-
-        result = response.json()
-
-        text = result["choices"][0]["message"]["content"]
-
-        message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
-
-{text}
-"""
-
-        return message
-
-    except Exception as e:
-        print("Error IA:", e)
-        return None
+    return message
