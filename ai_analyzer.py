@@ -3,8 +3,8 @@ from transformers import pipeline
 print("Cargando modelo IA...")
 
 generator = pipeline(
-    "text2text-generation",
-    model="google/flan-t5-base"
+    "text-generation",
+    model="distilgpt2"
 )
 
 print("Modelo cargado")
@@ -14,7 +14,7 @@ def analyze_news(title, text):
 
     try:
 
-        text = text[:1200]
+        text = text[:800]
 
         prompt = f"""
 Traduce al español y resume la siguiente noticia.
@@ -23,10 +23,10 @@ Titulo: {title}
 
 Contenido: {text}
 
-Devuelve SOLO esto:
+Respuesta en este formato:
 
-TITULO: traduccion del titulo
-RESUMEN: resumen en español
+TITULO:
+RESUMEN:
 """
 
         result = generator(
@@ -35,7 +35,10 @@ RESUMEN: resumen en español
             do_sample=False
         )
 
-        output = result[0]["generated_text"].strip()
+        output = result[0]["generated_text"]
+
+        # eliminar prompt
+        output = output.replace(prompt, "").strip()
 
         message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
 
