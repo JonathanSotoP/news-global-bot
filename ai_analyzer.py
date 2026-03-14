@@ -1,45 +1,51 @@
 from transformers import pipeline
 
-print("Cargando modelos IA...")
+print("Cargando modelo IA...")
 
-summarizer = pipeline(
-    "summarization",
-    model="sshleifer/distilbart-cnn-12-6"
+generator = pipeline(
+    "text-generation",
+    model="google/flan-t5-base"
 )
 
-translator = pipeline(
-    "translation",
-    model="Helsinki-NLP/opus-mt-en-es"
-)
-
-print("Modelos cargados")
+print("Modelo cargado")
 
 
 def analyze_news(title, text):
 
     try:
 
-        text = text[:2000]
+        text = text[:1500]
 
-        summary = summarizer(
-            text,
-            max_length=120,
-            min_length=50,
+        prompt = f"""
+Traduce el siguiente título al español y resume la noticia en español.
+
+Título:
+{title}
+
+Contenido:
+{text}
+
+Responde en este formato:
+
+TITULO:
+(título en español)
+
+RESUMEN:
+(resumen claro de la noticia)
+"""
+
+        result = generator(
+            prompt,
+            max_new_tokens=150,
             do_sample=False
-        )[0]["summary_text"]
+        )
 
-        title_es = translator(title)[0]["translation_text"]
-
-        summary_es = translator(summary)[0]["translation_text"]
+        output = result[0]["generated_text"]
 
         message = f"""
 🌍 NOTICIA GLOBAL IMPORTANTE
 
-📰 TITULO:
-{title_es}
-
-📄 RESUMEN:
-{summary_es}
+{output}
 """
 
         return message
