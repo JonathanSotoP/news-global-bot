@@ -6,7 +6,11 @@ def extract_article(url):
 
     try:
 
-        r = requests.get(url, timeout=20)
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        r = requests.get(url, headers=headers, timeout=20)
 
         soup = BeautifulSoup(r.text, "lxml")
 
@@ -15,10 +19,15 @@ def extract_article(url):
         text = ""
 
         for p in paragraphs:
-            text += p.get_text() + " "
+            t = p.get_text().strip()
 
-        return text[:4000]
+            if len(t) > 40:
+                text += t + " "
 
-    except:
+        return text[:5000]
+
+    except Exception as e:
+
+        print("Error extrayendo artículo:", e)
 
         return ""
