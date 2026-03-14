@@ -1,8 +1,9 @@
 from news_fetcher import fetch_news
-from news_filter import is_relevant
-from summarizer_ai import summarize
+from relevance_filter import is_relevant
+from article_extractor import extract_article
+from ai_analyzer import analyze_news
 from telegram_sender import send_message
-from impact_chile import analyze_impact
+
 
 def run():
 
@@ -15,43 +16,21 @@ def run():
         if not is_relevant(news):
             continue
 
-        title = news["title"]
-        text = title + ". " + news["summary"]
+        article = extract_article(news["link"])
 
-        # resumen largo en español
-        summary = summarize(
-            f"""
-Resume esta noticia en español en aproximadamente 1200-1500 caracteres.
+        if len(article) < 500:
+            continue
 
-Incluye:
-- contexto global
-- por qué es importante
-- posibles consecuencias económicas o geopolíticas
+        analysis = analyze_news(news["title"], article)
 
-Noticia:
-{text}
-"""
-        )
+        if not analysis:
+            continue
 
-        # análisis de impacto en Chile
-        impacts = analyze_impact(text)
+        message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
 
-        impact_text = ""
-        for i, imp in enumerate(impacts):
-            impact_text += f"{i+1}. {imp}\n"
+{analysis}
 
-        message = f"""🌎 **NOTICIA GLOBAL RELEVANTE**
-
-📰 **Titular**
-{title}
-
-📊 **Resumen**
-{summary}
-
-🇨🇱 **Impacto posible en Chile**
-{impact_text}
-
-🔗 **Fuente**
+Fuente:
 {news["link"]}
 """
 
@@ -59,7 +38,6 @@ Noticia:
 
         sent += 1
 
-        # máximo 3 noticias por ejecución
         if sent >= 3:
             break
 
