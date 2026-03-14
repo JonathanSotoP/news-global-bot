@@ -3,6 +3,14 @@ import re
 from heapq import nlargest
 
 
+important_keywords = [
+    "war","attack","military","crisis","economy","oil","inflation",
+    "china","russia","usa","nato","israel","iran","ukraine",
+    "earthquake","flood","disaster","explosion","terror",
+    "market","stocks","global","energy"
+]
+
+
 def clean_html(text):
     soup = BeautifulSoup(text, "html.parser")
     return soup.get_text()
@@ -37,10 +45,26 @@ def summarize(text, n=3):
     return " ".join(summary_sentences)
 
 
+def importance_score(title, content):
+
+    text = (title + " " + content).lower()
+
+    score = 0
+
+    for keyword in important_keywords:
+        if keyword in text:
+            score += 5
+
+    score += len(content) / 500
+
+    return score
+
+
 def analyze_news(title, content):
 
     content = clean_html(content)
-    content = content[:2000]
+
+    score = importance_score(title, content)
 
     summary = summarize(content, 3)
 
@@ -53,4 +77,4 @@ RESUMEN:
 {summary}
 """
 
-    return message
+    return score, message
