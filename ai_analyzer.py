@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 
-API_URL = "https://router.huggingface.co/hf-inference/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
 
 headers = {
     "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
@@ -21,7 +21,7 @@ def analyze_news(title, content):
     try:
 
         content = clean_html(content)
-        content = content[:1200]
+        content = content[:1000]
 
         prompt = f"""
 Traduce al español y resume la siguiente noticia.
@@ -48,7 +48,12 @@ RESUMEN:
             }
         }
 
-        response = requests.post(API_URL, headers=headers, json=payload)
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json=payload,
+            params={"provider": "hf-inference"}
+        )
 
         if response.status_code != 200:
             print("Error IA:", response.text)
@@ -56,16 +61,18 @@ RESUMEN:
 
         result = response.json()
 
+        # si el modelo está cargando
         if isinstance(result, dict) and "estimated_time" in result:
 
             print("Modelo cargando...")
             time.sleep(result["estimated_time"])
 
-            response = requests.post(API_URL, headers=headers, json=payload)
-
-            if response.status_code != 200:
-                print("Error IA:", response.text)
-                return None
+            response = requests.post(
+                API_URL,
+                headers=headers,
+                json=payload,
+                params={"provider": "hf-inference"}
+            )
 
             result = response.json()
 
