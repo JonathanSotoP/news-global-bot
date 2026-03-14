@@ -1,6 +1,3 @@
-transformers
-torch
-sentencepiece
+requests
 beautifulsoup4
 feedparser
-requests
