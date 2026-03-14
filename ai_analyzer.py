@@ -6,60 +6,65 @@ print("Cargando modelo IA...")
 
 generator = pipeline(
     "text-generation",
-    model="google/flan-t5-base"
+    model="gpt2"
 )
 
 print("Modelo cargado")
 
 
-def clean_text(text):
-
+def clean_html(text):
     soup = BeautifulSoup(text, "html.parser")
-    text = soup.get_text()
+    return soup.get_text()
 
-    text = re.sub(r'\s+', ' ', text)
+
+def clean_ai_output(text):
+
+    # eliminar el prompt si aparece
+    text = text.replace("Traduce al español y resume la siguiente noticia.", "")
+    text = text.replace("Titulo:", "TITULO:")
+    text = text.replace("Contenido:", "")
+    text = text.replace("Responde EXACTAMENTE en este formato:", "")
+
+    # eliminar espacios repetidos
+    text = re.sub(r"\n\s*\n", "\n\n", text)
 
     return text.strip()
 
 
-def analyze_news(title, text):
+def analyze_news(title, content):
 
     try:
 
-        text = clean_text(text)
-
-        text = text[:1200]
+        content = clean_html(content)
+        content = content[:800]
 
         prompt = f"""
-Traduce al español y resume la siguiente noticia.
+Traduce al español y resume esta noticia.
 
-Titulo:
-{title}
+Titulo: {title}
 
-Contenido:
-{text}
+Contenido: {content}
 
-Responde EXACTAMENTE en este formato:
+Formato de respuesta:
 
 TITULO:
-(titulo traducido al español)
-
 RESUMEN:
-(resumen claro en español en 3-4 lineas)
 """
 
         result = generator(
             prompt,
-            max_length=250,
-            do_sample=False
+            max_length=220,
+            do_sample=True,
+            temperature=0.3
         )
 
-        response = result[0]["generated_text"]
+        text = result[0]["generated_text"]
 
-        return f"🌍 NOTICIA GLOBAL IMPORTANTE\n\n{response}"
+        text = clean_ai_output(text)
+
+        return f"🌍 NOTICIA GLOBAL IMPORTANTE\n\n{text}"
 
     except Exception as e:
 
         print("Error IA:", e)
-
         return None
