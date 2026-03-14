@@ -1,17 +1,28 @@
 from transformers import pipeline
+from bs4 import BeautifulSoup
 import re
 
 print("Cargando modelo de traducción...")
 
 translator = pipeline(
-    "text-generation",
+    "translation_en_to_es",
     model="Helsinki-NLP/opus-mt-en-es"
 )
 
 print("Modelo cargado")
 
 
-def simple_summary(text):
+def clean_text(text):
+
+    soup = BeautifulSoup(text, "html.parser")
+    text = soup.get_text()
+
+    text = re.sub(r'\s+', ' ', text)
+
+    return text.strip()
+
+
+def summarize(text):
 
     sentences = re.split(r'[.!?]', text)
 
@@ -19,6 +30,7 @@ def simple_summary(text):
 
     for s in sentences:
         s = s.strip()
+
         if len(s) > 40:
             clean.append(s)
 
@@ -27,20 +39,20 @@ def simple_summary(text):
 
 def translate(text):
 
-    result = translator(text, max_new_tokens=120)
+    result = translator(text, max_length=200)
 
-    output = result[0]["generated_text"]
-
-    return output.strip()
+    return result[0]["translation_text"]
 
 
 def analyze_news(title, text):
 
     try:
 
+        text = clean_text(text)
+
         text = text[:1000]
 
-        summary = simple_summary(text)
+        summary = summarize(text)
 
         title_es = translate(title)
 
