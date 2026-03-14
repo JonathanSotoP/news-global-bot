@@ -3,12 +3,11 @@ from bs4 import BeautifulSoup
 import os
 import time
 
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
 
 headers = {
     "Authorization": f"Bearer {os.environ['HF_TOKEN']}"
 }
-
 
 def clean_html(text):
     soup = BeautifulSoup(text, "html.parser")
@@ -48,19 +47,16 @@ RESUMEN:
         }
 
         response = requests.post(API_URL, headers=headers, json=payload)
-
         result = response.json()
 
-        # 🔎 Si el modelo está cargando
         if isinstance(result, dict) and "estimated_time" in result:
 
-            print("Modelo cargando, esperando...")
+            print("Modelo cargando...")
             time.sleep(result["estimated_time"])
 
             response = requests.post(API_URL, headers=headers, json=payload)
             result = response.json()
 
-        # 🔎 Si hay error
         if isinstance(result, dict) and "error" in result:
 
             print("Error IA:", result["error"])
