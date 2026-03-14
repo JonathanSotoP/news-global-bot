@@ -1,13 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import os
-import time
 
-API_URL = "https://router.huggingface.co/hf-inference/models/HuggingFaceH4/zephyr-7b-beta"
+API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
 
 headers = {
-    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
-    "Content-Type": "application/json"
+    "Authorization": f"Bearer {os.environ['HF_TOKEN']}"
 }
 
 
@@ -23,29 +21,14 @@ def analyze_news(title, content):
         content = clean_html(content)
         content = content[:1200]
 
-        prompt = f"""
-Traduce al español y resume la siguiente noticia.
-
-Titulo:
-{title}
-
-Contenido:
-{content}
-
-Responde SOLO en este formato:
-
-TITULO:
-(titulo en español)
-
-RESUMEN:
-(resumen claro en español en 3 lineas)
-"""
+        text = f"{title}. {content}"
 
         payload = {
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 200
+            "inputs": text,
+            "parameters": {
+                "max_length": 130,
+                "min_length": 40
+            }
         }
 
         response = requests.post(API_URL, headers=headers, json=payload)
@@ -56,16 +39,19 @@ RESUMEN:
 
         result = response.json()
 
-        text = result["choices"][0]["message"]["content"]
+        summary = result[0]["summary_text"]
 
         message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
 
-{text}
+TITULO:
+{title}
+
+RESUMEN:
+{summary}
 """
 
         return message
 
     except Exception as e:
-
         print("Error IA:", e)
         return None
