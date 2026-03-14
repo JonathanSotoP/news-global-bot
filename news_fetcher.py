@@ -1,14 +1,30 @@
 import feedparser
-from sources import RSS_SOURCES
+
+RSS_FEEDS = [
+
+"https://feeds.bbci.co.uk/news/world/rss.xml",
+"https://rss.cnn.com/rss/edition_world.rss",
+"https://www.aljazeera.com/xml/rss/all.xml",
+"https://www.reuters.com/world/rss",
+"https://feeds.npr.org/1004/rss.xml"
+
+]
+
 
 def fetch_news():
+
     news = []
-    for url in RSS_SOURCES:
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
+
+    for feed_url in RSS_FEEDS:
+
+        feed = feedparser.parse(feed_url)
+
+        for entry in feed.entries[:5]:
+
             news.append({
-                "title": entry.get("title",""),
-                "summary": entry.get("summary",""),
-                "link": entry.get("link","")
+                "title": entry.title,
+                "summary": entry.summary,
+                "link": entry.link
             })
+
     return news
