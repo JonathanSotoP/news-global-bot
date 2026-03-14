@@ -25,7 +25,7 @@ Título:
 Contenido:
 {text}
 
-Responde en este formato:
+Responde SOLO en este formato:
 
 TITULO:
 (título en español)
@@ -36,11 +36,19 @@ RESUMEN:
 
         result = generator(
             prompt,
-            max_new_tokens=150,
+            max_new_tokens=120,
             do_sample=False
         )
 
         output = result[0]["generated_text"]
+
+        # eliminar el prompt
+        output = output.replace(prompt, "").strip()
+
+        # limpieza adicional por si el modelo devuelve cosas extra
+        if "TITULO:" in output:
+            output = output.split("TITULO:")[1]
+            output = "TITULO:" + output
 
         message = f"""
 🌍 NOTICIA GLOBAL IMPORTANTE
