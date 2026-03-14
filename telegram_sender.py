@@ -1,13 +1,16 @@
-from telegram import Bot
+import requests
 from config import BOT_TOKEN, CHAT_ID
-
-bot = Bot(token=BOT_TOKEN)
 
 
 def send_message(msg):
 
-    bot.send_message(
-        chat_id=CHAT_ID,
-        text=msg,
-        disable_web_page_preview=False
-    )
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+    payload = {
+
+        "chat_id": CHAT_ID,
+        "text": msg
+
+    }
+
+    requests.post(url, json=payload)
