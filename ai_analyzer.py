@@ -1,74 +1,51 @@
-import requests
-from config import HF_TOKEN
+from transformers import pipeline
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+print("Cargando modelos IA...")
 
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}",
-    "Content-Type": "application/json"
-}
+summarizer = pipeline(
+    "summarization",
+    model="sshleifer/distilbart-cnn-12-6"
+)
+
+translator = pipeline(
+    "translation",
+    model="Helsinki-NLP/opus-mt-en-es"
+)
+
+print("Modelos cargados")
 
 
-def analyze_news(title, article):
-
-    prompt = f"""
-Analiza la siguiente noticia internacional.
-
-1. Traduce el título al español.
-2. Resume la noticia en español (500 a 900 caracteres).
-3. Explica por qué es importante globalmente.
-4. Analiza cómo podría impactar en Chile.
-
-Responde EXACTAMENTE en este formato:
-
-TITULO:
-(titulo en español)
-
-RESUMEN:
-(resumen)
-
-IMPACTO EN CHILE:
-- impacto 1
-- impacto 2
-
-NOTICIA:
-Titulo: {title}
-
-Contenido:
-{article[:2000]}
-"""
-
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 300
-        }
-    }
+def analyze_news(title, text):
 
     try:
 
-        response = requests.post(
-            API_URL,
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
+        text = text[:2000]
 
-        print("Status code:", response.status_code)
+        summary = summarizer(
+            text,
+            max_length=120,
+            min_length=50,
+            do_sample=False
+        )[0]["summary_text"]
 
-        if response.status_code != 200:
-            print("Respuesta API:", response.text)
-            return None
+        title_es = translator(title)[0]["translation_text"]
 
-        data = response.json()
+        summary_es = translator(summary)[0]["translation_text"]
 
-        print("Respuesta IA:", data)
+        message = f"""
+🌍 NOTICIA GLOBAL IMPORTANTE
 
-        if isinstance(data, list) and "generated_text" in data[0]:
-            return data[0]["generated_text"]
+📰 TITULO:
+{title_es}
 
-        return None
+📄 RESUMEN:
+{summary_es}
+"""
+
+        return message
 
     except Exception as e:
+
         print("Error IA:", e)
+
         return None
