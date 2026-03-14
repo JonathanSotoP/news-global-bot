@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/google/flan-t5-large"
 
 headers = {
     "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
@@ -20,10 +20,7 @@ def analyze_news(title, content):
 
     try:
 
-        # limpiar HTML
         content = clean_html(content)
-
-        # limitar tamaño para la IA
         content = content[:1200]
 
         prompt = f"""
@@ -38,10 +35,10 @@ Contenido:
 Responde SOLO en este formato:
 
 TITULO:
-(titulo traducido al español)
+(titulo en español)
 
 RESUMEN:
-(resumen claro en español en 3-4 lineas)
+(resumen claro en español en 3 lineas)
 """
 
         payload = {
@@ -53,17 +50,15 @@ RESUMEN:
 
         response = requests.post(API_URL, headers=headers, json=payload)
 
-        # si la respuesta no es válida
         if response.status_code != 200:
             print("Error IA:", response.text)
             return None
 
         result = response.json()
 
-        # si el modelo está cargando
         if isinstance(result, dict) and "estimated_time" in result:
 
-            print("Modelo cargando, esperando...")
+            print("Modelo cargando...")
             time.sleep(result["estimated_time"])
 
             response = requests.post(API_URL, headers=headers, json=payload)
@@ -74,14 +69,19 @@ RESUMEN:
 
             result = response.json()
 
-        # si la API devuelve error
         if isinstance(result, dict) and "error" in result:
+
             print("Error IA:", result["error"])
             return None
 
         text = result[0]["generated_text"]
 
-        return f"🌍 NOTICIA GLOBAL IMPORTANTE\n\n{text}"
+        message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
+
+{text}
+"""
+
+        return message
 
     except Exception as e:
 
