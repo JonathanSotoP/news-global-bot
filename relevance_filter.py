@@ -1,17 +1,23 @@
 KEYWORDS = [
 
 "war",
-"conflict",
-"sanctions",
-"china",
+"ukraine",
 "russia",
+"china",
+"taiwan",
+"israel",
+"iran",
+"sanctions",
 "oil",
+"gas",
 "inflation",
 "interest rate",
-"global economy",
+"economy",
 "recession",
 "military",
-"trade war"
+"conflict",
+"trade",
+"nato"
 
 ]
 
