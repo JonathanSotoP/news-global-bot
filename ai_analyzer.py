@@ -5,7 +5,7 @@ import re
 print("Cargando modelo de traducción...")
 
 translator = pipeline(
-    "translation_en_to_es",
+    "translation",
     model="Helsinki-NLP/opus-mt-en-es"
 )
 
