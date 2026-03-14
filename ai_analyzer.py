@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/models/HuggingFaceH4/zephyr-7b-beta"
 
 headers = {
     "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
@@ -21,7 +21,7 @@ def analyze_news(title, content):
     try:
 
         content = clean_html(content)
-        content = content[:1000]
+        content = content[:1200]
 
         prompt = f"""
 Traduce al español y resume la siguiente noticia.
@@ -42,18 +42,13 @@ RESUMEN:
 """
 
         payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 200
-            }
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 200
         }
 
-        response = requests.post(
-            API_URL,
-            headers=headers,
-            json=payload,
-            params={"provider": "hf-inference"}
-        )
+        response = requests.post(API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
             print("Error IA:", response.text)
@@ -61,27 +56,7 @@ RESUMEN:
 
         result = response.json()
 
-        # si el modelo está cargando
-        if isinstance(result, dict) and "estimated_time" in result:
-
-            print("Modelo cargando...")
-            time.sleep(result["estimated_time"])
-
-            response = requests.post(
-                API_URL,
-                headers=headers,
-                json=payload,
-                params={"provider": "hf-inference"}
-            )
-
-            result = response.json()
-
-        if isinstance(result, dict) and "error" in result:
-
-            print("Error IA:", result["error"])
-            return None
-
-        text = result[0]["generated_text"]
+        text = result["choices"][0]["message"]["content"]
 
         message = f"""🌍 NOTICIA GLOBAL IMPORTANTE
 
