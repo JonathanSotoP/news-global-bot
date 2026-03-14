@@ -2,29 +2,51 @@ import feedparser
 
 RSS_FEEDS = [
 
+"https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
 "https://feeds.bbci.co.uk/news/world/rss.xml",
-"https://rss.cnn.com/rss/edition_world.rss",
 "https://www.aljazeera.com/xml/rss/all.xml",
-"https://www.reuters.com/world/rss",
-"https://feeds.npr.org/1004/rss.xml"
+"https://rss.cnn.com/rss/edition_world.rss"
+
+]
+
+KEYWORDS = [
+
+"war","military","conflict","china","russia","iran",
+"nato","economy","oil","sanctions","global",
+"us","attack","missile","crisis"
 
 ]
 
 
-def fetch_news():
+def is_relevant(title):
+
+    title = title.lower()
+
+    for k in KEYWORDS:
+        if k in title:
+            return True
+
+    return False
+
+
+def get_news():
 
     news = []
 
-    for feed_url in RSS_FEEDS:
+    for url in RSS_FEEDS:
 
-        feed = feedparser.parse(feed_url)
+        feed = feedparser.parse(url)
 
-        for entry in feed.entries[:5]:
+        for entry in feed.entries:
 
-            news.append({
-                "title": entry.title,
-                "summary": entry.summary,
-                "link": entry.link
-            })
+            if is_relevant(entry.title):
 
-    return news
+                news.append({
+
+                    "title": entry.title,
+                    "link": entry.link,
+                    "summary": entry.summary
+
+                })
+
+    return news[:5]
